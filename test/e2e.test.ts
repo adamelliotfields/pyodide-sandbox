@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { describe, it } from 'node:test'
 
 function run(...args: string[]) {
-  return execFileSync(bin, args, { encoding: 'utf-8', timeout: 10_000 }).trim()
+  return execFileSync(bin, args, { encoding: 'utf-8', timeout: 10_000, stdio: 'pipe' }).trim()
 }
 
 function rmDir(dir: string) {
@@ -93,9 +93,14 @@ except OSError:
     assert.equal(out, 'isolated')
   })
 
-  it('installs packages with --packages', () => {
+  it('installs built-in Pyodide packages with --packages', () => {
     const out = run('-p', 'regex', '-c', 'import regex; print(regex.__name__)')
     assert.ok(out.endsWith('regex'))
+  })
+
+  it('installs micropip packages with --packages', () => {
+    const out = run('-p', 'pyfiglet', '-c', 'import pyfiglet; print(pyfiglet.__name__)')
+    assert.equal(out.split('\n').at(-1), 'pyfiglet')
   })
 
   it('lists packages', () => {
