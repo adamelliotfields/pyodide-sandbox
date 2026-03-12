@@ -1,0 +1,34 @@
+{
+  "private": true,
+  "name": "pyodide-sandbox",
+  "description": "A Python sandbox powered by Pyodide",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "pyodide": "./src/main.ts"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "check": "tsgo -p .",
+    "lint": "biome ci .",
+    "lint:fix": "biome check --fix .",
+    "test": "node --test test/*.test.ts",
+    "build": "$npm_execpath run build:cjs && npm run build:bin",
+    "build:cjs": "rolldown -c",
+    "build:bin": "$npm_node_execpath --build-sea sea-config.json",
+    "build:exe": "%npm_node_execpath% --build-sea sea-config-windows.json",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "commander": "^14.0.3",
+    "pyodide": "0.29.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.6",
+    "@tsconfig/node-lts": "^24.0.0",
+    "@types/node": "^25.4.0",
+    "@typescript/native-preview": "latest",
+    "rimraf": "^6.1.3",
+    "rolldown": "1.0.0-rc.9"
+  }
+}

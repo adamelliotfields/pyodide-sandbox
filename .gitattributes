@@ -1,0 +1,7 @@
+# https://docs.github.com/en/get-started/git-basics/configuring-git-to-handle-line-endings
+* text=auto
+*.md text eol=lf
+*.sh text eol=lf
+*.ts text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
