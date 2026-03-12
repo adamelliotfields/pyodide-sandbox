@@ -121,7 +121,12 @@ except OSError:
   })
 
   it('handles env values with equals signs', () => {
-    const out = run('-e', 'CONN=host=localhost;port=5432', '-c', 'import os; print(os.environ["CONN"])')
+    const out = run(
+      '-e',
+      'CONN=host=localhost;port=5432',
+      '-c',
+      'import os; print(os.environ["CONN"])'
+    )
     assert.equal(out, 'host=localhost;port=5432')
   })
 
