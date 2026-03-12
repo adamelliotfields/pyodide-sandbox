@@ -60,13 +60,13 @@ Most things work, but there are edge cases.
 
 | Area | Works | Doesn't work |
 |------|-------|--------------|
-| **Data science** | pandas, numpy, statsmodels, scikit-learn, autograd | GPU libraries (torch, tensorflow) |
-| **Visualization** | matplotlib with `Agg` backend using `savefig()` | `plt.show()` or any interactive/GUI backend |
-| **HTTP clients** | `requests`, `httpx`, `urllib3`, `pyodide.http.pyfetch` | `urllib.request` (no `ssl` module in WASM) |
-| **Servers** | None | Listening servers (`app.run` blocks the event loop) |
+| **Data science** | `pandas`, `numpy`, `scikit-learn`, `autograd` | GPU libraries (`torch`, `tensorflow`) |
+| **Visualization** | Matplotlib with `Agg` backend` | `plt.show()`, `pygfx` (no `wgpu`) |
+| **HTTP clients** | `requests`, `httpx`, `pyodide.http.pyfetch` | `urllib` (no `ssl`), `yfinance` (no `curl-cffi`) |
+| **Servers** | None | Listening servers (`app.run` blocks) |
 | **File I/O** | Host directories via `--mount` | Direct host filesystem access |
 | **Concurrency** | Single-threaded code | `multiprocessing`, `threading` |
-| **C extensions** | Pyodide-compiled packages (see `--list-packages`) | Arbitrary pip wheels with native C code |
+| **C extensions** | Pyodide-compiled packages | Arbitrary pip wheels with native C code |
 | **Subprocess** | None | `subprocess`, `os.system` |
 
 ## Performance
