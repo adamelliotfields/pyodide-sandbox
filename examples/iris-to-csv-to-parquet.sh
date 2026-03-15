@@ -3,27 +3,25 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYODIDE_BIN="${PYODIDE_BIN:-$ROOT_DIR/dist/pyodide}"
-OUTPUT_DIR="${1:-$ROOT_DIR/examples}"
 
 if [[ ! -x $PYODIDE_BIN ]] ; then
   echo "error: pyodide binary not found at $PYODIDE_BIN" >&2
   exit 1
 fi
 
-mkdir -p "$OUTPUT_DIR"
+mkdir -p /tmp/pyodide-examples
 
 "$PYODIDE_BIN" \
--m "$OUTPUT_DIR:/examples" \
 -p scikit-learn,pandas,pyarrow \
--c 'from pathlib import Path
+'from pathlib import Path
 
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 from sklearn.datasets import load_iris
 
-csv_path = Path("/examples/iris.csv")
-parquet_path = Path("/examples/iris.parquet")
+csv_path = Path("/tmp/pyodide-examples/iris.csv")
+parquet_path = Path("/tmp/pyodide-examples/iris.parquet")
 
 iris = load_iris(as_frame=True)
 df = iris.frame.rename(columns={"target": "species_id"})

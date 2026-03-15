@@ -9,7 +9,7 @@ import { readAsset } from './utils.ts'
 
 const PYODIDE_RUNTIME_ASSETS = ['pyodide.asm.js', 'pyodide.asm.wasm', 'python_stdlib.zip'] as const
 
-/** Prepares and loads Pyodide runtime assets into the provided SEA cache directory. */
+/** Prepares and loads Pyodide runtime assets into the provided cache directory. */
 export function prepareRuntime(runtimeDir: string): void {
   mkdirSync(runtimeDir, { recursive: true })
 
@@ -35,11 +35,7 @@ export async function micropipInstall(pyodide: PyodideInterface, packages: strin
 }
 
 /** Mounts a host directory into the Pyodide filesystem at the requested guest path. */
-export function mountDirectory(pyodide: PyodideInterface, mount: string) {
-  const [hostPath, guestPath] = mount.split(':')
-  if (!hostPath || !guestPath) {
-    throw new Error(`Invalid mount format: "${mount}" (expected host:guest)`)
-  }
+export function mountDirectory(pyodide: PyodideInterface, hostPath: string, guestPath: string) {
   pyodide.FS.mkdirTree(guestPath)
   pyodide.mountNodeFS(guestPath, hostPath)
 }

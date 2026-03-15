@@ -3,26 +3,24 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYODIDE_BIN="${PYODIDE_BIN:-$ROOT_DIR/dist/pyodide}"
-OUTPUT_DIR="${1:-$ROOT_DIR/examples}"
 
 if [[ ! -x $PYODIDE_BIN ]] ; then
   echo "error: pyodide binary not found at $PYODIDE_BIN" >&2
   exit 1
 fi
 
-mkdir -p "$OUTPUT_DIR"
+mkdir -p /tmp/pyodide-examples
 
 "$PYODIDE_BIN" \
--m "$OUTPUT_DIR:/examples" \
 -p scikit-learn,matplotlib \
--c 'from pathlib import Path
+'from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_digits
 
-png_path = Path("/examples/digits.png")
+png_path = Path("/tmp/pyodide-examples/digits.png")
 
 digits = load_digits()
 images = []

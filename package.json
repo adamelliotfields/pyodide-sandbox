@@ -16,7 +16,6 @@
     "build": "$npm_execpath run build:cjs && npm run build:bin",
     "build:cjs": "rolldown -c",
     "build:bin": "$npm_node_execpath --build-sea sea-config.json",
-    "build:exe": "%npm_node_execpath% --build-sea sea-config-windows.json",
     "clean": "rimraf dist"
   },
   "dependencies": {

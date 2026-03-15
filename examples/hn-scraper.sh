@@ -11,7 +11,7 @@ fi
 
 "$PYODIDE_BIN" \
 -p httpx,beautifulsoup4 \
--c 'import httpx
+'import httpx
 from bs4 import BeautifulSoup
 
 async with httpx.AsyncClient() as client:

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createRequire } from 'node:module'
-import { EOL, homedir } from 'node:os'
+import { EOL } from 'node:os'
 import { dirname, join } from 'node:path'
 import { isSea } from 'node:sea'
 
@@ -12,8 +12,7 @@ import pyodideLockFile from 'pyodide/pyodide-lock.json' with { type: 'json' }
 import pkg from '../package.json' with { type: 'json' }
 
 import { micropipInstall, mountDirectory, prepareRuntime } from './pyodide.ts'
-import { readSource, runPython } from './run.ts'
-import { serve } from './serve.ts'
+import { readStdin, runPython } from './run.ts'
 
 const require = createRequire(import.meta.url)
 const app = new Command()
@@ -31,76 +30,53 @@ const envParser = (val: string, acc: Record<string, string>) => {
 }
 const envDefault = {} as Record<string, string>
 
-// Mount can be used multiple times.
-const mountParser = (val: string, acc: string[]) => [...acc, val]
-const mountDefault = [] as string[]
-
 app
   .name(appName)
   .description(pkg.description)
-  .option('-c, --code <code>', 'Python code to execute')
+  .argument('[code]', 'python code to execute')
+  .option('--cdn-url <url>', 'override the default jsDelivr CDN URL')
   .option(
     '-e, --env <KEY=VALUE>',
     'set environment variables in the sandbox',
     envParser,
     envDefault
   )
-  .option('-f, --file <path>', 'run a Python file')
-  .option(
-    '-m, --mount <host:guest>',
-    'mount host directories to the sandbox',
-    mountParser,
-    mountDefault
-  )
+  .option('--list-packages', 'list installed Pyodide packages')
   .option(
     '-p, --packages <names>',
     'install comma-separated packages before running',
     packagesParser
   )
-  .option('--cache-dir <path>', 'override the package cache directory')
-  .option('--cdn-url <url>', 'override the default jsDelivr CDN URL')
-  .option('--list-packages', 'list installed Pyodide packages')
   .version(pkg.version, '-v, --version')
 
-app
-  .command('serve')
-  .description('start a web server for the Pyodide xterm.js REPL')
-  .option('--port <number>', 'port to listen on', '8000')
-  .action((options: { port: string }) => {
-    console.log(options)
-    serve(Number(options.port))
-  })
-
 app.action(
-  async (options: {
-    code?: string
-    env?: Record<string, string>
-    file?: string
-    packages?: string[]
-    mount?: string[]
-    cacheDir?: string
-    cdnUrl?: string
-    listPackages?: boolean
-  }) => {
+  async (
+    code: string | undefined,
+    options: {
+      env?: Record<string, string>
+      packages?: string[]
+      cdnUrl?: string
+      listPackages?: boolean
+    }
+  ) => {
     // List packages and exit.
     if (options.listPackages) {
       const packageList = Object.keys(pyodideLockFile.packages).sort().join(EOL)
       return console.log(packageList)
     }
 
-    // Source code could be a file or inline string.
-    const source = readSource(options.file, options.code)
-    if (source === null || source.trim().length === 0) {
+    // Ensure we have code to run.
+    const source = code || (await readStdin())
+    if (typeof source === 'undefined' || source === null || source.trim().length === 0) {
       console.error(`Usage: ${appName} ${app.usage()}`)
       process.exit(1)
     }
 
     // Cache runtime assets and downloaded wheels.
-    const cacheRoot = process.env.XDG_CACHE_HOME || join(homedir(), '.cache')
-    const runtimeDir = join(cacheRoot, 'pyodide', `v${pyodidePkg.version}`)
+    const runtimeDir = join('/tmp', 'pyodide', `v${pyodidePkg.version}`)
     const indexURL = isSea() ? runtimeDir : dirname(require.resolve('pyodide/package.json'))
 
-    // Creates XDG_CACHE_HOME/pyodide and copies bundled Pyodide assets on first run.
+    // Creates /tmp/pyodide and copies bundled Pyodide assets on first run.
     if (isSea()) {
       prepareRuntime(runtimeDir)
     }
@@ -109,11 +85,30 @@ app.action(
     const cdnUrl = options.cdnUrl || `https://cdn.jsdelivr.net/pyodide/v${pyodidePkg.version}/full/`
 
     // Note that Pyodide will still log "caching the wheel in node_modules" even when using a custom folder.
-    const packageCacheDir = options.cacheDir || join(indexURL, 'full')
+    const packageCacheDir = join(indexURL, 'full')
     const pyodidePackages = (options.packages || []).filter((p) => p in pyodideLockFile.packages)
     const micropipPackages = (options.packages || []).filter(
       (p) => !(p in pyodideLockFile.packages)
     )
+
+    // Pyodide must be able to mutate `process.exitCode` so we use seal instead of freeze.
+    globalThis.process = Object.seal({
+      argv: [],
+      env: {},
+      exitCode: 0,
+      browser: false,
+      nextTick: process.nextTick,
+      platform: process.platform,
+      stderr: process.stderr,
+      stdin: process.stdin,
+      stdout: process.stdout,
+      version: process.version,
+      versions: process.versions,
+      getBuiltinModule: () => null,
+      exit: (code: number) => {
+        process.exitCode = code
+      }
+    }) as unknown as NodeJS.Process
 
     const pyodide = await loadPyodide({
       cdnUrl,
@@ -129,10 +124,7 @@ app.action(
       await micropipInstall(pyodide, micropipPackages)
     }
 
-    for (const mount of options.mount || []) {
-      mountDirectory(pyodide, mount)
-    }
-
+    mountDirectory(pyodide, '/tmp', '/tmp')
     await runPython(pyodide, source)
   }
 )

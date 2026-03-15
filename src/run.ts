@@ -1,13 +1,4 @@
-import { readFileSync } from 'node:fs'
-
 import type { PyodideInterface } from 'pyodide'
-
-/** Returns source code from a file path or inline code value when provided. */
-export function readSource(file: string | undefined, code: string | undefined): string | null {
-  if (file) return readFileSync(file, 'utf-8')
-  if (code) return code
-  return null
-}
 
 /** Reads all UTF-8 text from standard input. */
 export function readStdin(): Promise<string> {

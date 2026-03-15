@@ -1,18 +1,21 @@
 {
   "main": "dist/pyodide.cjs",
   "output": "dist/pyodide",
-  "execArgvExtension": "cli",
-  "execArgv": ["--no-warnings", "--no-deprecation"],
+  "execArgvExtension": "none",
+  "execArgv": [
+    "--no-warnings",
+    "--no-deprecation",
+    "--permission",
+    "--allow-net",
+    "--allow-fs-read=/tmp/*",
+    "--allow-fs-write=/tmp/*"
+  ],
   "disableExperimentalSEAWarning": true,
   "useCodeCache": false,
   "useSnapshot": false,
   "assets": {
-    "console-v2.html": "dist/console-v2.html",
     "pyodide.asm.js": "dist/pyodide.asm.js",
     "pyodide.asm.wasm": "dist/pyodide.asm.wasm",
-    "pyodide.mjs": "dist/pyodide.mjs",
-    "pyodide.mjs.map": "dist/pyodide.mjs.map",
-    "pyodide-lock.json": "dist/pyodide-lock.json",
     "python_stdlib.zip": "dist/python_stdlib.zip"
   }
 }

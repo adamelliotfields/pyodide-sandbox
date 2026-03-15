@@ -11,7 +11,7 @@ fi
 
 "$PYODIDE_BIN" \
 -p tqdm \
--c 'import time
+'import time
 from tqdm import tqdm
 
 tqdm.monitor_interval = 0  # disable background monitor thread as we are single threaded
