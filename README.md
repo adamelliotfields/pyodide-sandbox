@@ -13,7 +13,7 @@ Run Python in a sandboxed [WebAssembly](https://webassembly.org) environment pow
 
 Because permissions are configured at build time, users build the binary tailored to their security requirements.
 
-The default build downloads all Pyodide wheels, bundles everything into a single executable, and grants no filesystem or network permissions. See [Build Configuration](#build-configuration) for customization options.
+The default build downloads all Pyodide wheels, bundles everything into a single executable, and grants no filesystem or network permissions.
 
 ```sh
 gh repo clone adamelliotfields/pyodide-sandbox
@@ -144,9 +144,9 @@ libc.emscripten_run_script(payload)
 
 ### Mitigations
 
-Node's [Permission Model](https://nodejs.org/api/permissions.html), inspired by [Deno](https://docs.deno.com/runtime/fundamentals/security/#permissions), blocks child processes, workers, and addons. Filesystem and network access are disabled by default and can be selectively enabled at build time. `NODE_OPTIONS` and `--node-options` are also disabled to prevent modifying permissions at runtime.
+Node's permission model, inspired by [Deno](https://docs.deno.com/runtime/fundamentals/security/#permissions), blocks child processes, workers, and addons. Filesystem and network access are disabled by default and can be selectively enabled at build time. `NODE_OPTIONS` and `--node-options` are also disabled to prevent modifying permissions at runtime.
 
-Because Pyodide calls `process.binding('constants')` during initialization, which is blocked by the permission model, Rolldown patches `pyodide.asm.js` at build time to replace that call with static values. See [rolldown.config.ts](./rolldown.config.ts).
+Because Pyodide calls `process.binding('constants')` during initialization, which is blocked by the permission model, [Rolldown](./rolldown.config.ts) patches `pyodide.asm.js` at build time to replace that call with static values.
 
 Additionally, `process.env` is overwritten with an empty object at startup so host environment variables can't be read from within the sandbox.
 
