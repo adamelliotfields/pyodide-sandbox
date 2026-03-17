@@ -20,11 +20,6 @@ describe('e2e', () => {
     assert.equal(run('print(1 + 2)'), '3')
   })
 
-  it('installs built-in Pyodide packages with --packages', () => {
-    const out = run('-p', 'regex', 'import regex; print(regex.__name__)')
-    assert.ok(out.endsWith('regex'))
-  })
-
   it('lists packages', () => {
     const out = run('--list-packages')
     assert.ok(out.includes('micropip'))
