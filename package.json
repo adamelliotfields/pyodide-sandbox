@@ -4,6 +4,9 @@
   "description": "A Python sandbox powered by Pyodide",
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": ">=25.5.0"
+  },
   "bin": {
     "pyodide": "./src/main.ts"
   },
@@ -13,10 +16,12 @@
     "lint": "biome ci .",
     "lint:fix": "biome check --fix .",
     "test": "node --test test/*.test.ts",
-    "build": "$npm_execpath run build:cjs && npm run build:bin",
+    "build": "$npm_execpath run cache && $npm_execpath run build:cjs && npm run build:bin",
     "build:cjs": "rolldown -c",
-    "build:bin": "$npm_node_execpath --build-sea sea-config.json",
-    "clean": "rimraf dist"
+    "build:bin": "$npm_node_execpath --build-sea dist/sea-config.json",
+    "cache": "node scripts/cache-wheels.ts",
+    "clean": "rimraf dist",
+    "clean:cache": "rimraf .cache"
   },
   "dependencies": {
     "commander": "14.0.3",
