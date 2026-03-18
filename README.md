@@ -40,7 +40,7 @@ ALLOW_NET=1 npm run build
 ALLOW_FS=/tmp npm run build
 
 # Allow all filesystem access
-ALLOW_FS=* npm run build
+ALLOW_FS='*' npm run build
 ```
 
 ## Usage
@@ -107,6 +107,27 @@ pyodide -m /tmp:/data 'import os; print(os.listdir("/data"))'
 # Read a CSV from the host filesystem using shorthand syntax
 pyodide -m /tmp -p pandas 'import pandas as pd; print(pd.read_csv("/tmp/sales.csv").describe())'
 ```
+
+## Virtual File System
+
+To load files embedded in a SEA binary, you have to use `getAsset()` from the `node:sea` module, not `import()` or `fs.readFile()`.
+
+Because Pyodide is 3rd-party code that is not SEA-aware, it doesn't know to use `getAsset()`, so we have to modify the runtime using a combination of reflection and monkey-patching.
+
+> [!NOTE]
+> A proposed `node:vfs` module ([#61478](https://github.com/nodejs/node/pull/61478)) would largely eliminate these workarounds.
+
+### Runtime assets
+
+Since `import()` can't resolve modules embedded in the SEA blob, we load the Pyodide runtime file (`pyodide.asm.js`) as a string using `getAsset()` and execute it with `Script(asset).runInThisContext()` from the `node:vm` module.
+
+### Binary assets
+
+We patch Pyodide's [`node_getBinaryResponse()`](https://github.com/pyodide/pyodide/blob/0.29.3/src/js/compat.ts#L115) to first check a `globalThis.getSeaAsset` hook before falling back to `fs.readFile()`. At runtime, we set `getSeaAsset` to read from the SEA blob.
+
+### Packages
+
+We overwrite the [`packageManager.downloadPackage()`](https://github.com/pyodide/pyodide/blob/0.29.3/src/js/load-package.ts#L447) method to try reading from SEA before falling back to fetching from the jsDelivr CDN.
 
 ## Security
 

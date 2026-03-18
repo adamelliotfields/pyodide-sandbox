@@ -13,7 +13,8 @@ Building a command-line interface (CLI) for Pyodide to provide a sandboxed envir
 │   ├── commander.md
 │   ├── node-sea.md
 │   ├── permissions.md
-│   └── pyodide.md
+│   ├── pyodide.md
+│   └── vm-script.md
 ├── package.json
 ├── rolldown.config.ts
 ├── src
