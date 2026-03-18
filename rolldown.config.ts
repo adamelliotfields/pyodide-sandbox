@@ -46,7 +46,7 @@ const PYODIDE_FLAGS_REPLACE =
 const PYODIDE_BINARY_SEARCH =
   'function ce(e,t){return e.startsWith("file://")&&(e=e.slice(7)),e.includes("://")?{response:fetch(e)}:{binary:L.readFile(e).then(n=>new Uint8Array(n.buffer,n.byteOffset,n.byteLength))}}'
 const PYODIDE_BINARY_REPLACE =
-  'function ce(e,t){var a=globalThis.__getAsset;if(a){var b=a(e);if(b)return{binary:Promise.resolve(b)}}e.startsWith("file://")&&(e=e.slice(7));return e.includes("://")?{response:fetch(e)}:{binary:L.readFile(e).then(n=>new Uint8Array(n.buffer,n.byteOffset,n.byteLength))}}'
+  'function ce(e,t){var a=globalThis.getSeaAsset;if(a){var b=a(e);if(b)return{binary:Promise.resolve(b)}}e.startsWith("file://")&&(e=e.slice(7));return e.includes("://")?{response:fetch(e)}:{binary:L.readFile(e).then(n=>new Uint8Array(n.buffer,n.byteOffset,n.byteLength))}}'
 
 /** Copy static assets to the output directory. */
 function copy({ targets }: { targets: CopyTarget[] }): Plugin {

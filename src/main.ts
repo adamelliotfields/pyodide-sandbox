@@ -6,11 +6,15 @@ import { isSea } from 'node:sea'
 
 import { Command } from 'commander'
 import { loadPyodide } from 'pyodide'
-import pyodideLockFile from 'pyodide/pyodide-lock.json' with { type: 'json' }
 
 import pkg from '../package.json' with { type: 'json' }
 
-import { preparePackageManager, prepareRuntime } from './pyodide.ts'
+import {
+  lockFileContents,
+  lockFilePackages,
+  preparePackageManager,
+  prepareRuntime
+} from './pyodide.ts'
 import { hasFSAccess, hasNetAccess, readStdin } from './utils.ts'
 
 const IS_SEA = isSea()
@@ -61,7 +65,7 @@ app.action(
   ) => {
     // List packages and exit
     if (options.listPackages) {
-      const packageList = Object.keys(pyodideLockFile.packages).sort().join(EOL)
+      const packageList = Object.keys(lockFilePackages).sort().join(EOL)
       return console.log(packageList)
     }
 
@@ -81,8 +85,8 @@ app.action(
 
     const pyodide = await loadPyodide({
       indexURL,
+      lockFileContents,
       packageCacheDir: IS_SEA ? undefined : join(indexURL, 'full'),
-      lockFileContents: JSON.stringify(pyodideLockFile),
       ...(Object.keys(options.env || {}).length > 0 && { env: options.env })
     })
 
@@ -91,15 +95,13 @@ app.action(
     }
 
     // Load requested packages before running code
-    const pyodidePackages = (options.packages || []).filter((p) => p in pyodideLockFile.packages)
+    const pyodidePackages = (options.packages || []).filter((p) => p in lockFilePackages)
     if (pyodidePackages.length > 0) {
       await pyodide.loadPackage(pyodidePackages)
     }
 
     // Install micropip and unbundled packages
-    const micropipPackages = (options.packages || []).filter(
-      (p) => !(p in pyodideLockFile.packages)
-    )
+    const micropipPackages = (options.packages || []).filter((p) => !(p in lockFilePackages))
     if (micropipPackages.length > 0) {
       if (!hasNetAccess()) {
         throw new Error('No network permission to install packages')
@@ -118,7 +120,7 @@ app.action(
         throw new Error(`No filesystem permission for "${hostPath}"`)
       }
       pyodide.FS.mkdirTree(guestPath)
-      pyodide.mountNodeFS(hostPath, guestPath)
+      pyodide.mountNodeFS(guestPath, hostPath)
     }
 
     await pyodide.runPythonAsync(source)

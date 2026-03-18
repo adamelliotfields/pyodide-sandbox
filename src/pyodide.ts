@@ -3,7 +3,7 @@ import { getAsset } from 'node:sea'
 import vm from 'node:vm'
 
 import type { PyodideInterface } from 'pyodide'
-import pyodideLockfile from 'pyodide/pyodide-lock.json' with { type: 'json' }
+import pyodideLockFile from 'pyodide/pyodide-lock.json' with { type: 'json' }
 
 interface LockfileFile {
   file_name: string
@@ -26,11 +26,14 @@ interface PyodideApi {
   packageManager: PackageManager
 }
 
+export const lockFileContents = JSON.stringify(pyodideLockFile)
+export const lockFilePackages = pyodideLockFile.packages
+
 const PYODIDE_ASSETS = [
   'pyodide.asm.js',
   'pyodide.asm.wasm',
   'python_stdlib.zip',
-  ...Object.values(pyodideLockfile.packages).map((pkg) => pkg.file_name)
+  ...Object.values(lockFilePackages).map((pkg) => pkg.file_name)
 ]
 
 /** Returns the SEA asset path if the requested path corresponds to a bundled runtime or package asset. */
@@ -43,7 +46,7 @@ export function getSeaAssetPath(path: string): string | undefined {
 /** Prepares Pyodide runtime from SEA assets without filesystem access. */
 export function prepareRuntime(): void {
   // Hook into Pyodide's patched node_getBinaryResponse to serve assets from the SEA blob
-  Reflect.set(globalThis, '__getAsset', (path: string) => {
+  Reflect.set(globalThis, 'getSeaAsset', (path: string) => {
     const assetPath = getSeaAssetPath(path)
     if (assetPath) return new Uint8Array(getAsset(assetPath))
     return undefined
